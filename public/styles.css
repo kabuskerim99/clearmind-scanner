@@ -1,0 +1,12 @@
+*, *::before, *::after { 
+    box-sizing: border-box; 
+} 
+
+:root { 
+    --primary: #0f766e; 
+    --gray-100: #f8fafc; 
+    --gray-200: #f1f5f9; 
+    --gray-700: #334155; 
+} 
+
+/* Rest des CSS-Codes aus Ihrem Paste */
