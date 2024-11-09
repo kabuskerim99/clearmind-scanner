@@ -148,7 +148,7 @@ app.get('/api/contacts', async (req, res) => {
     }
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, '0.0.0.0', () => {
     console.clear();
     console.log('\n=== SERVER ERFOLGREICH GESTARTET ===');
