@@ -4,7 +4,7 @@ const cors = require('cors');
 const { OpenAI } = require('openai');
 const nodemailer = require('nodemailer');
 const path = require('path');
-const { initDatabase, getDb } = require('./database');
+const { initDatabase, Contact, Analysis } = require('./database');
 
 // Express App initialisieren
 const app = express();
@@ -29,10 +29,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // Datenbank beim Start initialisieren
-let db;
-(async () => {
-    db = await initDatabase();
-})();
+initDatabase();
 
 // Test E-Mail-Konfiguration
 transporter.verify(function (error, success) {
@@ -75,17 +72,16 @@ app.post('/api/analyze', async (req, res) => {
 
         // In Datenbank speichern
         console.log('4. Speichere in Datenbank...');
-        let contact = await db.get('SELECT id FROM contacts WHERE email = ?', [email]);
-        
-        if (!contact) {
-            const result = await db.run('INSERT INTO contacts (email) VALUES (?)', [email]);
-            contact = { id: result.lastID };
-        }
+        let [contact] = await Contact.findOrCreate({
+            where: { email },
+            defaults: { status: 'active' }
+        });
 
-        await db.run(
-            'INSERT INTO analyses (contact_id, situation, analysis) VALUES (?, ?, ?)',
-            [contact.id, situation, analysis]
-        );
+        await Analysis.create({
+            situation,
+            analysis,
+            ContactId: contact.id
+        });
 
         console.log('5. Sende E-Mail...');
         await transporter.sendMail({
@@ -124,48 +120,35 @@ app.post('/api/analyze', async (req, res) => {
     }
 });
 
-// Neuer Endpunkt zum Abrufen der Kontakte
+// Endpunkt zum Abrufen der Kontakte
 app.get('/api/contacts', async (req, res) => {
     try {
-        const contacts = await db.all(`
-            SELECT 
-                c.*, 
-                COUNT(a.id) as analysis_count,
-                MAX(a.created_at) as last_analysis
-            FROM contacts c
-            LEFT JOIN analyses a ON c.id = a.contact_id
-            GROUP BY c.id
-            ORDER BY c.created_at DESC
-        `);
-        res.json(contacts);
+        const contacts = await Contact.findAll({
+            include: [{
+                model: Analysis,
+                attributes: ['createdAt']
+            }],
+            order: [['createdAt', 'DESC']]
+        });
+
+        const formattedContacts = contacts.map(contact => ({
+            id: contact.id,
+            email: contact.email,
+            status: contact.status,
+            created_at: contact.createdAt,
+            analysis_count: contact.Analyses.length,
+            last_analysis: contact.Analyses.length > 0 ? 
+                contact.Analyses[contact.Analyses.length - 1].createdAt : null
+        }));
+
+        res.json(formattedContacts);
     } catch (error) {
+        console.error('Fehler beim Abrufen der Kontakte:', error);
         res.status(500).json({ error: 'Fehler beim Abrufen der Kontakte' });
     }
 });
-app.post('/api/newsletter', async (req, res) => {
-    try {
-        const { content } = req.body;
-        
-        // Alle aktiven Kontakte abrufen
-        const contacts = await db.all('SELECT email FROM contacts WHERE status = "active"');
-        
-        // Newsletter an alle senden
-        for (const contact of contacts) {
-            await transporter.sendMail({
-                from: process.env.GMAIL_USER,
-                to: contact.email,
-                subject: "Update von Clear Mind Scanner",
-                html: content
-            });
-        }
-        
-        res.json({ success: true });
-    } catch (error) {
-        console.error('Newsletter Fehler:', error);
-        res.status(500).json({ error: 'Newsletter konnte nicht gesendet werden' });
-    }
-});
-const PORT = 5000;
+
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
     console.clear();
     console.log('\n=== SERVER ERFOLGREICH GESTARTET ===');
@@ -174,5 +157,6 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log('\nEnvironment Check:');
     console.log('- OpenAI Key:', !!process.env.OPENAI_API_KEY);
     console.log('- Gmail Setup:', !!process.env.GMAIL_USER && !!process.env.GMAIL_APP_PASSWORD);
+    console.log('- Database URL:', !!process.env.DATABASE_URL);
     console.log('\nWarte auf Anfragen...');
 });
