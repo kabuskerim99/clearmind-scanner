@@ -4,7 +4,7 @@ const cors = require('cors');
 const { OpenAI } = require('openai');
 const nodemailer = require('nodemailer');
 const path = require('path');
-const { initDatabase, Contact, Analysis } = require('./database');
+const { Contact, Analysis, initDatabase } = require('./database');
 
 // Express App initialisieren
 const app = express();
@@ -42,12 +42,15 @@ transporter.verify(function (error, success) {
 
 // Hauptendpunkt für die Analyse
 app.post('/api/analyze', async (req, res) => {
-    console.log('\n==== ANALYSE WIRD GESTARTET ====');
+    console.log('\n==== NEUE ANALYSE ANFRAGE ====');
+    console.log('Eingegangene Daten:', req.body);
+    
     try {
         const { email, situation } = req.body;
         
         console.log('1. Prüfe Eingaben...');
         if (!email || !situation) {
+            console.log('Fehler: Fehlende Eingaben');
             return res.status(400).json({ error: 'E-Mail und Situation sind erforderlich' });
         }
 
@@ -72,40 +75,52 @@ app.post('/api/analyze', async (req, res) => {
 
         // In Datenbank speichern
         console.log('4. Speichere in Datenbank...');
-        let [contact] = await Contact.findOrCreate({
-            where: { email },
-            defaults: { status: 'active' }
-        });
+        try {
+            let [contact] = await Contact.findOrCreate({
+                where: { email },
+                defaults: { status: 'active' }
+            });
 
-        await Analysis.create({
-            situation,
-            analysis,
-            ContactId: contact.id
-        });
+            await Analysis.create({
+                situation,
+                analysis,
+                ContactId: contact.id
+            });
+            console.log('Datenbankspeiicherung erfolgreich');
+        } catch (dbError) {
+            console.error('Datenbankfehler:', dbError);
+            throw dbError;
+        }
 
         console.log('5. Sende E-Mail...');
-        await transporter.sendMail({
-            from: process.env.GMAIL_USER,
-            to: email,
-            subject: "Ihre Clear Mind Scanner Analyse",
-            html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h2 style="color: #0f766e;">Ihre persönliche Clear Mind Analyse</h2>
-                    <p>Vielen Dank für Ihr Vertrauen in den Clear Mind Scanner. Hier ist Ihre individuelle Analyse:</p>
-                    <div style="background: #f5f5f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                        ${analysis.replace(/\n/g, '<br>')}
+        try {
+            await transporter.sendMail({
+                from: process.env.GMAIL_USER,
+                to: email,
+                subject: "Ihre Clear Mind Scanner Analyse",
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                        <h2 style="color: #0f766e;">Ihre persönliche Clear Mind Analyse</h2>
+                        <p>Vielen Dank für Ihr Vertrauen in den Clear Mind Scanner. Hier ist Ihre individuelle Analyse:</p>
+                        <div style="background: #f5f5f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                            ${analysis.replace(/\n/g, '<br>')}
+                        </div>
+                        <p style="color: #666;">
+                            <small>
+                                Diese Analyse wurde mit Hilfe von KI erstellt und ersetzt keine professionelle therapeutische Beratung.
+                                Bei ernsthaften Anliegen wenden Sie sich bitte an entsprechende Fachkräfte.
+                            </small>
+                        </p>
                     </div>
-                    <p style="color: #666;">
-                        <small>
-                            Diese Analyse wurde mit Hilfe von KI erstellt und ersetzt keine professionelle therapeutische Beratung.
-                            Bei ernsthaften Anliegen wenden Sie sich bitte an entsprechende Fachkräfte.
-                        </small>
-                    </p>
-                </div>
-            `
-        });
+                `
+            });
+            console.log('E-Mail erfolgreich gesendet');
+        } catch (emailError) {
+            console.error('E-Mail-Fehler:', emailError);
+            throw emailError;
+        }
 
-        console.log('6. E-Mail erfolgreich gesendet');
+        console.log('6. Anfrage erfolgreich abgeschlossen');
         res.json({ 
             success: true, 
             message: 'Analyse wurde erfolgreich durchgeführt und per E-Mail versandt'
