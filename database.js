@@ -19,7 +19,16 @@ const Contact = sequelize.define('Contact', {
     },
     status: {
         type: Sequelize.STRING,
-        defaultValue: 'active'
+        defaultValue: 'pending', // neu: 'pending', 'active', 'inactive'
+    },
+    confirmationToken: {
+        type: Sequelize.STRING,
+        unique: true,
+        allowNull: true
+    },
+    confirmedAt: {
+        type: Sequelize.DATE,
+        allowNull: true
     }
 });
 
@@ -31,6 +40,10 @@ const Analysis = sequelize.define('Analysis', {
     analysis: {
         type: Sequelize.TEXT,
         allowNull: false
+    },
+    status: {
+        type: Sequelize.STRING,
+        defaultValue: 'pending' // neu: 'pending', 'completed'
     }
 });
 
@@ -42,7 +55,7 @@ Analysis.belongsTo(Contact);
 async function initDatabase() {
     try {
         await sequelize.authenticate();
-        await sequelize.sync();
+        await sequelize.sync({ alter: true }); // Vorsicht: im Produktivsystem
         console.log('Datenbankverbindung hergestellt');
     } catch (error) {
         console.error('Datenbankfehler:', error);
