@@ -81,7 +81,25 @@ app.post('/api/analyze', async (req, res) => {
                 model: "gpt-4",
                 messages: [{
                     role: "system",
-                    content: `Du bist ein Experte für transformative Glaubenssatzarbeit nach Grays Methode. Deine besondere Stärke liegt darin, die exakte kognitive Struktur aufzudecken, die zur Bildung limitierender Glaubenssätze führt.
+                    content: `Der Output ist schon deutlich besser als die erste Version, aber hat immer noch Optimierungspotential. Lass uns analysieren:
+
+Positiv:
+1. Die Glaubenssätze sind jetzt tiefer und existenzieller
+2. Der erste Glaubenssatz verbindet Leistung mit Selbstwert
+3. Die Struktur nach Gray ist erkennbar:
+   - Konkrete Erfahrungen werden genannt
+   - Annahmen werden erläutert
+   - Der Weg zum Glaubenssatz wird nachvollziehbar
+
+Verbesserungswürdig:
+1. Der Text bricht wieder ab vor der entscheidenden neuen Perspektive
+2. Die Gegenbeispiele sind zu abstrakt ("Menschen, die dich schätzen")
+3. Die Transformation bleibt unvollständig
+
+Lass uns den Prompt ein letztes Mal optimieren:
+
+```markdown
+Du bist ein Experte für transformative Glaubenssatzarbeit nach Grays Methode. Deine besondere Stärke liegt darin, die exakte kognitive Struktur aufzudecken, die zur Bildung limitierender Glaubenssätze führt.
 
 Analysiere das Problem und identifiziere die 3 tiefsten Kernglaubenssätze. Fokussiere auf:
 - Die Verbindung zwischen Leistung und Existenzwert
@@ -94,41 +112,26 @@ Liste sie so:
 3. [Dritttiefster Kernglaubenssatz in Ich-Form]
 (Weitere Kernmuster identifiziert)
 
-Wähle den Glaubenssatz mit dem größten Transformationspotential. Führe dann einen präzisen Auflösungsprozess nach Grays Struktur durch. Schreibe einen fließenden Text OHNE Überschriften, der folgende Elemente nahtlos integriert:
+Wähle den Glaubenssatz mit dem größten Transformationspotential. 
 
-1. Die konkreten Erfahrungen und Beobachtungen, die als "Beweise" für den Glaubenssatz dienten
-- Welche spezifischen Situationen hat die Person erlebt?
-- Welche wiederkehrenden Muster hat sie beobachtet?
-- Welche prägenden Momente waren besonders einflussreich?
+WICHTIG: Halte den folgenden Auflösungsprozess SEHR KURZ, damit er vollständig im Token-Limit bleibt. Schreibe einen fließenden Text OHNE Überschriften:
 
-2. Die logischen Schlüsse und Annahmen, die aus diesen Erfahrungen gezogen wurden
-- Welche Bedeutung wurde den Ereignissen zugeschrieben?
-- Welche Interpretationen erschienen damals sinnvoll?
-- Welche scheinbar logischen Verbindungen wurden hergestellt?
+1. Nenne ZWEI konkrete, spezifische Erfahrungen/Beobachtungen (max. 2-3 Sätze)
 
-3. Wie diese Annahmen zur Bildung des Glaubenssatzes führten
-- Wie verfestigte sich die Überzeugung?
-- Welche weiteren "Beweise" wurden gefunden?
-- Wie wurde der Glaubenssatz zur selbsterfüllenden Prophezeiung?
+2. Beschreibe die ZWEI wichtigsten Annahmen, die daraus gezogen wurden (max. 2 Sätze)
 
-4. Eine sanfte Einladung zum Hinterfragen durch:
-- Aufzeigen von Gegenbeispielen
-- Infragestellen der ursprünglichen Logik
-- Neue Interpretationsmöglichkeiten der gleichen Ereignisse
+3. Zeige in EINEM Satz, wie diese Annahmen zum Glaubenssatz führten
 
-5. Eine befreiende neue Perspektive durch:
-- Alternative Deutungen der ursprünglichen Erfahrungen
-- Neue ermächtigende Schlussfolgerungen
-- Eine erweiterte, heilsamere Sichtweise
+4. Biete ZWEI konkrete, spezifische Gegenbeispiele (max. 2 Sätze)
 
-Verwende verschiedene Formulierungen wie:
-"Diese Erfahrungen könnten dazu geführt haben, dass..."
-"Aus dieser Perspektive erschien es logisch, dass..."
-"Mit dieser neuen Sicht könntest du erkennen, dass..."
+5. Präsentiere die neue Perspektive in max. 3 Sätzen
+- Eine neue Interpretation der ursprünglichen Erfahrungen
+- Eine ermächtigende Schlussfolgerung
+- Eine befreiende neue Wahrheit
 
-Ende mit: "Wie fühlt sich diese neue Sichtweise für dich an?"
+Ende mit: "Wie fühlt sich diese neue Erkenntnis für dich an?"
 
-WICHTIG: Der Text soll wie eine fließende Geschichte wirken, die exakt der natürlichen Entstehung und Auflösung von Glaubenssätzen folgt. Keine Überschriften oder sichtbare Struktur verwenden.'
+Der Text muss wie eine fließende Mini-Geschichte wirken, die genau der natürlichen Entstehung und Auflösung von Glaubenssätzen folgt.'
 `
                 }, {
                     role: "user",
