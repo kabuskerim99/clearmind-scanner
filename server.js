@@ -47,6 +47,7 @@ transporter.verify(function (error, success) {
 });
 
 // Hauptendpunkt für die Analyse
+// In server.js, den /api/analyze Endpunkt aktualisieren
 app.post('/api/analyze', async (req, res) => {
     console.log('\n==== NEUE ANALYSE ANFRAGE ====');
     console.log('Eingegangene Daten:', req.body);
@@ -57,90 +58,107 @@ app.post('/api/analyze', async (req, res) => {
         console.log('1. Prüfe Eingaben...');
         if (!email || !situation) {
             console.log('Fehler: Fehlende Eingaben');
-            return res.status(400).json({ error: 'E-Mail und Situation sind erforderlich' });
+            return res.status(400).json({ 
+                error: 'E-Mail und Situation sind erforderlich',
+                received: { email: !!email, situation: !!situation }
+            });
         }
 
         console.log('2. Starte OpenAI Analyse...');
-        const completion = await openai.chat.completions.create({
-            model: "gpt-4",
-            messages: [{
-                role: "system",
-                content: `Du bist ein erfahrener Psychologe und Experte für limitierende Glaubenssätze.
-                       Analysiere das folgende Problem und identifiziere die 3 wichtigsten limitierenden 
-                       Kernglaubenssätze, die dahinter stecken könnten. Formuliere sie in der Ich-Form.`
-            }, {
-                role: "user",
-                content: situation
-            }],
-            temperature: 0.7,
-            max_tokens: 500
-        });
-
-        const analysis = completion.choices[0].message.content;
-        console.log('3. Analyse erstellt:', analysis);
-
-        // In Datenbank speichern
-        console.log('4. Speichere in Datenbank...');
         try {
-            let [contact] = await Contact.findOrCreate({
-                where: { email },
-                defaults: { status: 'active' }
+            const completion = await openai.chat.completions.create({
+                model: "gpt-4",
+                messages: [{
+                    role: "system",
+                    content: `Du bist ein erfahrener Psychologe und Experte für limitierende Glaubenssätze.
+                           Analysiere das folgende Problem und identifiziere die 3 wichtigsten limitierenden 
+                           Kernglaubenssätze, die dahinter stecken könnten. Formuliere sie in der Ich-Form.`
+                }, {
+                    role: "user",
+                    content: situation
+                }],
+                temperature: 0.7,
+                max_tokens: 500
             });
 
-            await Analysis.create({
-                situation,
-                analysis,
-                ContactId: contact.id
-            });
-            console.log('Datenbankspeiicherung erfolgreich');
-        } catch (dbError) {
-            console.error('Datenbankfehler:', dbError);
-            throw dbError;
-        }
+            const analysis = completion.choices[0].message.content;
+            console.log('3. Analyse erstellt');
 
-        console.log('5. Sende E-Mail...');
-        try {
-            await transporter.sendMail({
-                from: process.env.GMAIL_USER,
-                to: email,
-                subject: "Ihre Clear Mind Scanner Analyse",
-                html: `
-                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                        <h2 style="color: #0f766e;">Ihre persönliche Clear Mind Analyse</h2>
-                        <p>Vielen Dank für Ihr Vertrauen in den Clear Mind Scanner. Hier ist Ihre individuelle Analyse:</p>
-                        <div style="background: #f5f5f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                            ${analysis.replace(/\n/g, '<br>')}
+            // In Datenbank speichern
+            console.log('4. Speichere in Datenbank...');
+            try {
+                let [contact] = await Contact.findOrCreate({
+                    where: { email },
+                    defaults: { status: 'active' }
+                });
+
+                await Analysis.create({
+                    situation,
+                    analysis,
+                    ContactId: contact.id
+                });
+                console.log('Datenbankspeiicherung erfolgreich');
+            } catch (dbError) {
+                console.error('Datenbankfehler:', dbError);
+                return res.status(500).json({ 
+                    error: 'Datenbankfehler',
+                    details: dbError.message
+                });
+            }
+
+            console.log('5. Sende E-Mail...');
+            try {
+                await transporter.sendMail({
+                    from: process.env.GMAIL_USER,
+                    to: email,
+                    subject: "Ihre ClearSelf Scanner Analyse",
+                    html: `
+                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                            <h2 style="color: #0f766e;">Ihre persönliche ClearSelf Analyse</h2>
+                            <p>Vielen Dank für Ihr Vertrauen in den ClearSelf Scanner. Hier ist Ihre individuelle Analyse:</p>
+                            <div style="background: #f5f5f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                                ${analysis.replace(/\n/g, '<br>')}
+                            </div>
+                            <p style="color: #666;">
+                                <small>
+                                    Diese Analyse wurde mit Hilfe von KI erstellt und ersetzt keine professionelle therapeutische Beratung.
+                                    Bei ernsthaften Anliegen wenden Sie sich bitte an entsprechende Fachkräfte.
+                                </small>
+                            </p>
                         </div>
-                        <p style="color: #666;">
-                            <small>
-                                Diese Analyse wurde mit Hilfe von KI erstellt und ersetzt keine professionelle therapeutische Beratung.
-                                Bei ernsthaften Anliegen wenden Sie sich bitte an entsprechende Fachkräfte.
-                            </small>
-                        </p>
-                    </div>
-                `
-            });
-            console.log('E-Mail erfolgreich gesendet');
-        } catch (emailError) {
-            console.error('E-Mail-Fehler:', emailError);
-            throw emailError;
-        }
+                    `
+                });
+                console.log('E-Mail erfolgreich gesendet');
+            } catch (emailError) {
+                console.error('E-Mail-Fehler:', emailError);
+                return res.status(500).json({ 
+                    error: 'E-Mail konnte nicht gesendet werden',
+                    details: emailError.message
+                });
+            }
 
-        console.log('6. Anfrage erfolgreich abgeschlossen');
-        res.json({ 
-            success: true, 
-            message: 'Analyse wurde erfolgreich durchgeführt und per E-Mail versandt'
-        });
+            console.log('6. Anfrage erfolgreich abgeschlossen');
+            return res.json({ 
+                success: true, 
+                message: 'Analyse wurde erfolgreich durchgeführt und per E-Mail versandt'
+            });
+
+        } catch (openaiError) {
+            console.error('OpenAI Fehler:', openaiError);
+            return res.status(500).json({ 
+                error: 'Fehler bei der KI-Analyse',
+                details: openaiError.message
+            });
+        }
 
     } catch (error) {
         console.error('\nHAUPTFEHLER:', error);
-        res.status(500).json({ 
-            error: 'Ein Fehler ist aufgetreten', 
-            details: error.message 
+        return res.status(500).json({ 
+            error: 'Ein unerwarteter Fehler ist aufgetreten',
+            details: error.message
         });
     }
 });
-
 // Endpunkt zum Abrufen der Kontakte
 app.get('/api/contacts', async (req, res) => {
     try {
