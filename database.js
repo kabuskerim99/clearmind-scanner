@@ -19,7 +19,7 @@ const Contact = sequelize.define('Contact', {
     },
     status: {
         type: Sequelize.STRING,
-        defaultValue: 'pending', // neu: 'pending', 'active', 'inactive'
+        defaultValue: 'pending' // neu: 'pending', 'active', 'inactive'
     },
     confirmationToken: {
         type: Sequelize.STRING,
@@ -39,7 +39,7 @@ const Analysis = sequelize.define('Analysis', {
     },
     analysis: {
         type: Sequelize.TEXT,
-        allowNull: false
+        allowNull: true
     },
     status: {
         type: Sequelize.STRING,
@@ -55,7 +55,7 @@ Analysis.belongsTo(Contact);
 async function initDatabase() {
     try {
         await sequelize.authenticate();
-        await sequelize.sync({ alter: true }); // Vorsicht: im Produktivsystem
+        await sequelize.sync({ alter: true }); // Dies wird die Tabellen aktualisieren
         console.log('Datenbankverbindung hergestellt');
     } catch (error) {
         console.error('Datenbankfehler:', error);
