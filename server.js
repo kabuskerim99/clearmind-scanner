@@ -10,9 +10,15 @@ const { Contact, Analysis, initDatabase } = require('./database');
 const app = express();
 
 // Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+// CORS Middleware aktualisieren
+app.use(cors({
+    origin: ['https://clearself.ai', 'http://localhost:5000'],
+    methods: ['POST', 'GET', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Accept', 'Origin'],
+    credentials: true
+}));
+
+app.options('*', cors());
 
 // OpenAI Setup
 const openai = new OpenAI({
