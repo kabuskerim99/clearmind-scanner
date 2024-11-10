@@ -1,9 +1,69 @@
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const { OpenAI } = require('openai');
+const nodemailer = require('nodemailer');
+const path = require('path');
+const { Contact, Analysis, initDatabase } = require('./database');
+
+// Express App initialisieren
+const app = express();
+
+// CORS konfigurieren
+app.use(cors({
+    origin: ['https://clearself.ai', 'http://localhost:5000'],
+    methods: ['POST', 'GET', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Accept', 'Origin'],
+}));
+
+// Body Parser Middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// Static files
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Debug Middleware
+app.use((req, res, next) => {
+    if (req.method === 'POST') {
+        console.log('Request Headers:', req.headers);
+        console.log('Request Body:', req.body);
+    }
+    next();
+});
+
+// OpenAI Setup
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+});
+
+// Email Transporter Setup
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD
+    }
+});
+
+// Datenbank beim Start initialisieren
+initDatabase();
+
+// Test E-Mail-Konfiguration
+transporter.verify(function (error, success) {
+    if (error) {
+        console.log('E-Mail-Konfigurationsfehler:', error);
+    } else {
+        console.log('Server ist bereit, E-Mails zu versenden');
+    }
+});
+
 // Helfer-Funktion für Token-Generierung
 function generateToken() {
     return require('crypto').randomBytes(32).toString('hex');
 }
 
-// Angepasster /api/analyze Endpunkt
+// Hauptendpunkt für die Analyse
 app.post('/api/analyze', async (req, res) => {
     console.log('\n==== NEUE ANALYSE ANFRAGE ====');
     console.log('Eingegangene Daten:', req.body);
@@ -83,7 +143,7 @@ app.post('/api/analyze', async (req, res) => {
     }
 });
 
-// Neuer Bestätigungs-Endpunkt
+// Bestätigungs-Endpunkt
 app.get('/api/confirm/:token', async (req, res) => {
     try {
         const { token } = req.params;
@@ -180,4 +240,45 @@ app.get('/api/confirm/:token', async (req, res) => {
         console.error('Bestätigungsfehler:', error);
         res.status(500).send('Es ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.');
     }
+});
+
+// Endpunkt zum Abrufen der Kontakte
+app.get('/api/contacts', async (req, res) => {
+    try {
+        const contacts = await Contact.findAll({
+            include: [{
+                model: Analysis,
+                attributes: ['createdAt']
+            }],
+            order: [['createdAt', 'DESC']]
+        });
+
+        const formattedContacts = contacts.map(contact => ({
+            id: contact.id,
+            email: contact.email,
+            status: contact.status,
+            created_at: contact.createdAt,
+            analysis_count: contact.Analyses.length,
+            last_analysis: contact.Analyses.length > 0 ? 
+                contact.Analyses[contact.Analyses.length - 1].createdAt : null
+        }));
+
+        res.json(formattedContacts);
+    } catch (error) {
+        console.error('Fehler beim Abrufen der Kontakte:', error);
+        res.status(500).json({ error: 'Fehler beim Abrufen der Kontakte' });
+    }
+});
+
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, '0.0.0.0', () => {
+    console.clear();
+    console.log('\n=== SERVER ERFOLGREICH GESTARTET ===');
+    console.log(`Zeit: ${new Date().toISOString()}`);
+    console.log(`Server läuft auf: http://localhost:${PORT}`);
+    console.log('\nEnvironment Check:');
+    console.log('- OpenAI Key:', !!process.env.OPENAI_API_KEY);
+    console.log('- Gmail Setup:', !!process.env.GMAIL_USER && !!process.env.GMAIL_APP_PASSWORD);
+    console.log('- Database URL:', !!process.env.DATABASE_URL);
+    console.log('\nWarte auf Anfragen...');
 });
