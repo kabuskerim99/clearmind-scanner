@@ -9,16 +9,28 @@ const { Contact, Analysis, initDatabase } = require('./database');
 // Express App initialisieren
 const app = express();
 
-// Middleware
-// CORS Middleware aktualisieren
+// CORS konfigurieren
 app.use(cors({
-    origin: ['https://clearself.ai', 'http://localhost:5000'],
+    origin: 'https://clearself.ai',
     methods: ['POST', 'GET', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Accept', 'Origin'],
-    credentials: true
 }));
 
-app.options('*', cors());
+// Body Parser Middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// Static files
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Debug Middleware
+app.use((req, res, next) => {
+    if (req.method === 'POST') {
+        console.log('Request Headers:', req.headers);
+        console.log('Request Body:', req.body);
+    }
+    next();
+});
 
 // OpenAI Setup
 const openai = new OpenAI({
@@ -47,7 +59,6 @@ transporter.verify(function (error, success) {
 });
 
 // Hauptendpunkt für die Analyse
-// In server.js, den /api/analyze Endpunkt aktualisieren
 app.post('/api/analyze', async (req, res) => {
     console.log('\n==== NEUE ANALYSE ANFRAGE ====');
     console.log('Eingegangene Daten:', req.body);
@@ -159,6 +170,7 @@ app.post('/api/analyze', async (req, res) => {
         });
     }
 });
+
 // Endpunkt zum Abrufen der Kontakte
 app.get('/api/contacts', async (req, res) => {
     try {
