@@ -224,7 +224,7 @@ Liste sie so:
 
 Wähle den Glaubenssatz mit dem größten Transformationspotential. 
 
-WICHTIG: Halte den folgenden Auflösungsprozess SEHR KURZ, damit er vollständig im Token-Limit bleibt. Schreibe einen fließenden Text OHNE Überschriften:
+WICHTIG: Halte den folgenden Auflösungsprozess SEHR KURZ, damit er vollständig im Token-Limit bleibt. Schreibe einen fließenden Text OHNE Überschriften und erklärungen der einzlenne abschnitte. es soll ein angenehm zu lesender fliesstext sein für den leser.:
 
 1. Nenne ZWEI konkrete, spezifische Erfahrungen/Beobachtungen (max. 2-3 Sätze)
 
