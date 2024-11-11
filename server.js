@@ -117,12 +117,12 @@ app.post('/api/analyze', async (req, res) => {
         await transporter.sendMail({
             from: process.env.GMAIL_USER,
             to: email,
-            subject: "Bitte bestätigen Sie Ihre ClearSelf Analyse",
+            subject: "Bitte bestätige deine ClearSelf Analyse",
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h2 style="color: #0f766e;">Bestätigen Sie Ihre E-Mail-Adresse</h2>
-                    <p>Vielen Dank für Ihr Interesse an einer ClearSelf Analyse.</p>
-                    <p>Um Ihre Analyse zu erhalten, bestätigen Sie bitte Ihre E-Mail-Adresse:</p>
+                    <h2 style="color: #0f766e;">Bestätige deine E-Mail-Adresse</h2>
+                    <p>Vielen Dank für dein Interesse an einer ClearSelf Analyse.</p>
+                    <p>Um deine Analyse zu erhalten, bestätige bitte deine E-Mail-Adresse:</p>
                     <p style="margin: 30px 0;">
                         <a href="https://clear-mind-scanner.onrender.com/api/confirm/${confirmationToken}" 
                            style="background: #0f766e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;">
@@ -130,7 +130,7 @@ app.post('/api/analyze', async (req, res) => {
                         </a>
                     </p>
                     <p style="color: #666; font-size: 0.9em;">
-                        Wenn Sie diese Analyse nicht angefordert haben, können Sie diese E-Mail ignorieren.
+                        Wenn du diese Analyse nicht angefordert hast, kannst du diese E-Mail ignorieren.
                     </p>
                 </div>
             `
@@ -138,7 +138,7 @@ app.post('/api/analyze', async (req, res) => {
 
         res.json({ 
             success: true, 
-            message: 'Bitte bestätigen Sie Ihre E-Mail-Adresse. Sie erhalten gleich eine E-Mail von uns.'
+            message: 'Bitte bestätige deine E-Mail-Adresse. Du erhältst gleich eine E-Mail von uns.'
         });
 
     } catch (error) {
@@ -177,8 +177,8 @@ app.get('/api/confirm/:token', async (req, res) => {
                     </head>
                     <body>
                         <h1 class="info">Diese E-Mail wurde bereits bestätigt</h1>
-                        <p>Ihre Analyse sollte bereits per E-Mail bei Ihnen eingegangen sein.</p>
-                        <p>Falls nicht, kontaktieren Sie uns bitte unter: info@clearself.ai</p>
+                        <p>Deine Analyse sollte bereits per E-Mail bei dir eingegangen sein.</p>
+                        <p>Falls nicht, kontaktiere  uns bitte unter: info@clearself.ai</p>
                         <p><a href="https://clearself.ai">Zurück zur Website</a></p>
                     </body>
                 </html>
@@ -277,35 +277,35 @@ Ende mit: "Wie fühlst du dich jetzt in Bezug auf diese neue Sichtweise?"`
             await transporter.sendMail({
                 from: process.env.GMAIL_USER,
                 to: contact.email,
-                subject: "Ihre erste Analyse ist bereit [Wichtige Erkenntnis entdeckt]",
+                subject: "Deine erste Analyse ist bereit [Wichtige Erkenntnis entdeckt]",
                 html: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #334155;">
-                        <h2 style="color: #0f766e;">Ihre erste ClearSelf Analyse</h2>
+                        <h2 style="color: #0f766e;">Deine erste ClearSelf Analyse</h2>
             
-                        <p>Hallo ${contact.name || 'dort'},</p>
+                        <p>Hallo,</p>
             
-                        <p>unsere KI hat Ihre Situation analysiert und einen ersten bedeutsamen Glaubenssatz identifiziert:</p>
+                        <p>unsere KI hat deine Situation analysiert und einen ersten bedeutsamen Glaubenssatz identifiziert:</p>
             
                         <div style="background: #f8fafc; padding: 25px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #0f766e;">
-                            <h3 style="color: #0f766e; margin-top: 0;">🔍 IHRE ERSTE ERKENNTNIS:</h3>
+                            <h3 style="color: #0f766e; margin-top: 0;">🔍 DEINE ERSTE ERKENNTNIS:</h3>
                             ${pendingAnalysis.analysis.replace(/\n/g, '<br>')}
                         </div>
             
                         <div style="background: #fdf2f8; padding: 20px; border-radius: 8px; margin: 25px 0;">
                             <p style="color: #be185d; font-weight: bold;">⚡️ WICHTIG:</p>
-                            <p>Dies ist nur der erste von mehreren Glaubenssätzen, die die KI in Ihrer Beschreibung erkannt hat. Für echte Transformation ist es wichtig, alle Kernmuster zu erkennen und aufzulösen.</p>
+                            <p>Dies ist nur der erste von mehreren Glaubenssätzen, die die KI in deiner Beschreibung erkannt hat. Für echte Transformation ist es wichtig, alle Kernmuster zu erkennen und aufzulösen.</p>
                         </div>
             
                         <div style="background: #0f766e; color: white; padding: 25px; border-radius: 8px; margin: 25px 0; text-align: center;">
                             <h3 style="margin-top: 0;">🎯 REVOLUTIONÄRER DURCHBRUCH</h3>
-                            <p>Stellen Sie sich vor: Sie könnten ab heute <strong>jedes Problem</strong> in Minuten analysieren und auflösen.</p>
+                            <p>Stell dir vor: Du könntest ab heute <strong>jedes Problem</strong> in Minuten analysieren und auflösen.</p>
             
                             <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px; margin: 20px 0;">
                                 <h4 style="margin-top: 0;">Mit dem ClearSelf Scanner:</h4>
                                 <ul style="list-style: none; padding: 0; text-align: left;">
-                                    <li style="margin: 10px 0;">✓ Sie tippen ein Problem ein</li>
+                                    <li style="margin: 10px 0;">✓ Du tippst ein Problem ein</li>
                                     <li style="margin: 10px 0;">✓ Die KI findet alle verborgenen Glaubenssätze</li>
-                                    <li style="margin: 10px 0;">✓ Sie lesen die Analyse</li>
+                                    <li style="margin: 10px 0;">✓ Du liest die Analyse</li>
                                     <li style="margin: 10px 0;">✓ Die Transformation geschieht beim Lesen</li>
                                 </ul>
                             </div>
@@ -337,10 +337,10 @@ Ende mit: "Wie fühlst du dich jetzt in Bezug auf diese neue Sichtweise?"`
                         </div>
             
                         <div style="background: #fff7ed; padding: 20px; border-radius: 8px; margin: 25px 0;">
-                            <p style="color: #9a3412; margin: 0;">⏰ Einführungsangebot: Der Preis von 47€/Monat gilt nur für die ersten 100 Mitglieder. Sichern Sie sich jetzt Ihren lebenslangen Vorzugspreis.</p>
+                            <p style="color: #9a3412; margin: 0;">⏰ Einführungsangebot: Der Preis von 47€/Monat gilt nur für die ersten 100 Mitglieder. Sichere dir jetzt deinen lebenslangen Vorzugspreis.</p>
                         </div>
             
-                        <p><strong>P.S.:</strong> Denken Sie daran: Sie haben gerade erst einen Glaubenssatz erkannt. Stellen Sie sich vor, was passiert, wenn Sie ab heute jedes Problem sofort vollständig analysieren und auflösen können - einfach durch Lesen.</p>
+                        <p><strong>P.S.:</strong> Du hast gerade erst einen Glaubenssatz erkannt. Stell dir vor, was passiert, wenn du ab heute jedes Problem sofort vollständig analysieren und auflösen kannst - einfach durch Lesen.</p>
             
                         <div style="text-align: center; margin: 30px 0;">
                             <a href="${process.env.SALES_PAGE_URL}" style="display: inline-block; background: #0f766e; color: white; padding: 15px 30px; text-decoration: none; border-radius: 4px; font-weight: bold;">Jetzt Zugang freischalten</a>
@@ -375,7 +375,7 @@ Ende mit: "Wie fühlst du dich jetzt in Bezug auf diese neue Sichtweise?"`
                     </head>
                     <body>
                         <h1 class="success">E-Mail-Adresse bestätigt!</h1>
-                        <p>Vielen Dank für Ihre Bestätigung. Ihre Analyse wird nun erstellt und in wenigen Minuten per E-Mail zugestellt.</p>
+                        <p>Vielen Dank für deine Bestätigung. Deine Analyse wird nun erstellt und in wenigen Minuten per E-Mail zugestellt.</p>
                         <p><a href="https://clearself.ai">Zurück zur Website</a></p>
                     </body>
                 </html>
@@ -389,7 +389,7 @@ Ende mit: "Wie fühlst du dich jetzt in Bezug auf diese neue Sichtweise?"`
         }
     } catch (error) {
         console.error('Bestätigungsfehler:', error);
-        res.status(500).send('Es ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.');
+        res.status(500).send('Es ist ein Fehler aufgetreten. Bitte versuche es später erneut.');
     }
 });
 
