@@ -11,10 +11,15 @@ const app = express();
 
 // CORS konfigurieren
 app.use(cors({
-    origin: ['https://clearself.ai', 'http://localhost:5000'],
-    methods: ['POST', 'GET', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Accept', 'Origin'],
+    origin: ['https://clearself.ai', 'https://www.clearself.ai'],  // beide Domains erlauben
+    methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Accept', 'Origin', 'Authorization'],
+    credentials: false,
+    maxAge: 86400 // CORS Pre-flight cache für 24 Stunden
 }));
+
+// Pre-flight requests
+app.options('*', cors());
 
 // Body Parser Middleware
 app.use(express.json({ limit: '10mb' }));
@@ -25,12 +30,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Debug Middleware
 app.use((req, res, next) => {
-    if (req.method === 'POST') {
-        console.log('Request Headers:', req.headers);
-        console.log('Request Body:', req.body);
-    }
+    console.log(`${req.method} ${req.path}`, req.params);
     next();
 });
+
+// Rest des Codes bleibt gleich...
 
 // OpenAI Setup
 const openai = new OpenAI({
@@ -281,4 +285,55 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log('- Gmail Setup:', !!process.env.GMAIL_USER && !!process.env.GMAIL_APP_PASSWORD);
     console.log('- Database URL:', !!process.env.DATABASE_URL);
     console.log('\nWarte auf Anfragen...');
+});
+
+// Endpunkt zum Löschen eines Kontakts
+// Endpunkt zum Löschen eines Kontakts
+app.delete('/api/contacts/:email', cors(), async (req, res) => {
+    try {
+        const { email } = req.params;
+        
+        // Validiere E-Mail-Format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ 
+                error: 'Ungültiges E-Mail-Format' 
+            });
+        }
+        
+        console.log('Löschversuch für:', email);
+    
+
+        // Finde und lösche den Kontakt
+        const contact = await Contact.findOne({ 
+            where: { email }
+        });
+
+        if (contact) {
+            // Lösche zuerst alle zugehörigen Analysen
+            await Analysis.destroy({ 
+                where: { ContactId: contact.id }
+            });
+            
+            // Dann lösche den Kontakt selbst
+            await contact.destroy();
+            
+            console.log(`Kontakt ${email} wurde gelöscht`);
+            res.json({ 
+                success: true, 
+                message: 'Kontakt wurde gelöscht' 
+            });
+        } else {
+            console.log(`Kontakt ${email} nicht gefunden`);
+            res.status(404).json({ 
+                error: 'Kontakt nicht gefunden' 
+            });
+        }
+    } catch (error) {
+        console.error('Fehler beim Löschen:', error);
+        res.status(500).json({ 
+            error: 'Fehler beim Löschen des Kontakts',
+            details: error.message 
+        });
+    }
 });
