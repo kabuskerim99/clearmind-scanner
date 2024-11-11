@@ -9,13 +9,18 @@ const { Contact, Analysis, initDatabase } = require('./database');
 // Express App initialisieren
 const app = express();
 
+// Health Check Endpoint
+app.get('/health', (req, res) => {
+    res.status(200).send('OK');
+});
+
 // CORS konfigurieren
 app.use(cors({
-    origin: ['https://clearself.ai', 'https://www.clearself.ai'],  // beide Domains erlauben
+    origin: ['https://clearself.ai', 'https://www.clearself.ai'],
     methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Accept', 'Origin', 'Authorization'],
     credentials: false,
-    maxAge: 86400 // CORS Pre-flight cache für 24 Stunden
+    maxAge: 86400
 }));
 
 // Pre-flight requests
@@ -33,8 +38,6 @@ app.use((req, res, next) => {
     console.log(`${req.method} ${req.path}`, req.params);
     next();
 });
-
-// Rest des Codes bleibt gleich...
 
 // OpenAI Setup
 const openai = new OpenAI({
@@ -105,7 +108,7 @@ app.post('/api/analyze', async (req, res) => {
         // Analyse erstellen
         const analysis = await Analysis.create({
             situation,
-            analysis: null, // Wird erst nach Bestätigung erstellt
+            analysis: null,
             ContactId: contact.id,
             status: 'pending'
         });
@@ -147,17 +150,14 @@ app.post('/api/analyze', async (req, res) => {
     }
 });
 
-//// Bestätigungs-Endpunkt
+// Bestätigungs-Endpunkt
 app.get('/api/confirm/:token', async (req, res) => {
     try {
         const { token } = req.params;
         console.log('Bestätigungsversuch für Token:', token);
         
-        // Kontakt finden - auch wenn nicht pending
         const contact = await Contact.findOne({
-            where: { 
-                confirmationToken: token
-            }
+            where: { confirmationToken: token }
         });
 
         if (!contact) {
@@ -190,7 +190,7 @@ app.get('/api/confirm/:token', async (req, res) => {
         contact.confirmedAt = new Date();
         await contact.save();
 
-        // Ausstehende Analyse finden oder neue erstellen
+        // Ausstehende Analyse finden
         let pendingAnalysis = await Analysis.findOne({
             where: { 
                 ContactId: contact.id,
@@ -247,7 +247,7 @@ app.get('/api/confirm/:token', async (req, res) => {
                 `
             });
 
-            // Jetzt erst den Token entfernen
+            // Token erst nach erfolgreicher Analyse entfernen
             contact.confirmationToken = null;
             await contact.save();
 
@@ -270,7 +270,7 @@ app.get('/api/confirm/:token', async (req, res) => {
 
         } catch (error) {
             console.error('Fehler bei Analyse/E-Mail:', error);
-            contact.status = 'pending'; // Status zurücksetzen bei Fehler
+            contact.status = 'pending';
             await contact.save();
             throw error;
         }
@@ -278,4 +278,93 @@ app.get('/api/confirm/:token', async (req, res) => {
         console.error('Bestätigungsfehler:', error);
         res.status(500).send('Es ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.');
     }
+});
+
+// Endpunkt zum Abrufen der Kontakte
+app.get('/api/contacts', async (req, res) => {
+    try {
+        const contacts = await Contact.findAll({
+            include: [{
+                model: Analysis,
+                attributes: ['createdAt']
+            }],
+            order: [['createdAt', 'DESC']]
+        });
+
+        const formattedContacts = contacts.map(contact => ({
+            id: contact.id,
+            email: contact.email,
+            status: contact.status,
+            created_at: contact.createdAt,
+            analysis_count: contact.Analyses.length,
+            last_analysis: contact.Analyses.length > 0 ? 
+                contact.Analyses[contact.Analyses.length - 1].createdAt : null
+        }));
+
+        res.json(formattedContacts);
+    } catch (error) {
+        console.error('Fehler beim Abrufen der Kontakte:', error);
+        res.status(500).json({ error: 'Fehler beim Abrufen der Kontakte' });
+    }
+});
+
+// Endpunkt zum Löschen eines Kontakts
+app.delete('/api/contacts/:email', cors(), async (req, res) => {
+    try {
+        const { email } = req.params;
+        
+        // Validiere E-Mail-Format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ 
+                error: 'Ungültiges E-Mail-Format' 
+            });
+        }
+        
+        console.log('Löschversuch für:', email);
+
+        const contact = await Contact.findOne({ 
+            where: { email }
+        });
+
+        if (contact) {
+            await Analysis.destroy({ 
+                where: { ContactId: contact.id }
+            });
+            
+            await contact.destroy();
+            
+            console.log(`Kontakt ${email} wurde gelöscht`);
+            res.json({ 
+                success: true, 
+                message: 'Kontakt wurde gelöscht' 
+            });
+        } else {
+            console.log(`Kontakt ${email} nicht gefunden`);
+            res.status(404).json({ 
+                error: 'Kontakt nicht gefunden' 
+            });
+        }
+    } catch (error) {
+        console.error('Fehler beim Löschen:', error);
+        res.status(500).json({ 
+            error: 'Fehler beim Löschen des Kontakts',
+            details: error.message 
+        });
+    }
+});
+
+// Server starten
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log('\n=== SERVER ERFOLGREICH GESTARTET ===');
+    console.log(`Server läuft auf Port ${PORT}`);
+    console.log('\nEnvironment Check:');
+    console.log('- OpenAI Key:', !!process.env.OPENAI_API_KEY);
+    console.log('- Gmail Setup:', !!process.env.GMAIL_USER && !!process.env.GMAIL_APP_PASSWORD);
+    console.log('- Database URL:', !!process.env.DATABASE_URL);
+}).on('listening', () => {
+    console.log(`Server is listening on port ${PORT}`);
+}).on('error', (err) => {
+    console.error('Server error:', err);
 });
