@@ -282,7 +282,7 @@ Ende mit: "Wie fühlst du dich jetzt in Bezug auf diese neue Sichtweise?"`
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #334155;">
                         <h2 style="color: #0f766e;">Deine erste ClearSelf Analyse</h2>
             
-                        <p>Hallo,</p>
+                        <p>Hallo ${contact.name || 'dort'},</p>
             
                         <p>unsere KI hat deine Situation analysiert und einen ersten bedeutsamen Glaubenssatz identifiziert:</p>
             
@@ -328,7 +328,7 @@ Ende mit: "Wie fühlst du dich jetzt in Bezug auf diese neue Sichtweise?"`
                                 </p>
                             </div>
             
-                            <a href="${process.env.SALES_PAGE_URL}" style="display: inline-block; background: white; color: #0f766e; padding: 15px 30px; text-decoration: none; border-radius: 4px; font-weight: bold;">Jetzt unbegrenzten Zugang sichern</a>
+                            <a href="https://clearself.ai/angebot/" style="display: inline-block; background: white; color: #0f766e; padding: 15px 30px; text-decoration: none; border-radius: 4px; font-weight: bold;">Jetzt unbegrenzten Zugang sichern</a>
                         </div>
             
                         <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 25px 0;">
@@ -340,10 +340,10 @@ Ende mit: "Wie fühlst du dich jetzt in Bezug auf diese neue Sichtweise?"`
                             <p style="color: #9a3412; margin: 0;">⏰ Einführungsangebot: Der Preis von 47€/Monat gilt nur für die ersten 100 Mitglieder. Sichere dir jetzt deinen lebenslangen Vorzugspreis.</p>
                         </div>
             
-                        <p><strong>P.S.:</strong> Du hast gerade erst einen Glaubenssatz erkannt. Stell dir vor, was passiert, wenn du ab heute jedes Problem sofort vollständig analysieren und auflösen kannst - einfach durch Lesen.</p>
+                        <p><strong>P.S.:</strong> Denk daran: Du hast gerade erst einen Glaubenssatz erkannt. Stell dir vor, was passiert, wenn du ab heute jedes Problem sofort vollständig analysieren und auflösen kannst - einfach durch Lesen.</p>
             
                         <div style="text-align: center; margin: 30px 0;">
-                            <a href="${process.env.SALES_PAGE_URL}" style="display: inline-block; background: #0f766e; color: white; padding: 15px 30px; text-decoration: none; border-radius: 4px; font-weight: bold;">Jetzt Zugang freischalten</a>
+                            <a href="https://clearself.ai/angebot/" style="display: inline-block; background: #0f766e; color: white; padding: 15px 30px; text-decoration: none; border-radius: 4px; font-weight: bold;">Jetzt Zugang freischalten</a>
                         </div>
             
                         <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
@@ -351,9 +351,9 @@ Ende mit: "Wie fühlst du dich jetzt in Bezug auf diese neue Sichtweise?"`
                         <div style="font-size: 12px; color: #666; text-align: center;">
                             <p>Diese Analyse wurde mit Hilfe von KI erstellt und dient der Selbstreflexion. Sie ersetzt keine professionelle Beratung.</p>
                             <p>
-                                <a href="${process.env.DOMAIN}/datenschutz" style="color: #0f766e; text-decoration: none;">Datenschutz</a> | 
-                                <a href="${process.env.DOMAIN}/impressum" style="color: #0f766e; text-decoration: none;">Impressum</a> | 
-                                <a href="${process.env.DOMAIN}/abmelden" style="color: #0f766e; text-decoration: none;">Abmelden</a>
+                                <a href="https://clearself.ai/datenschutzerklaerung/" style="color: #0f766e; text-decoration: none;">Datenschutz</a> | 
+                                <a href="https://clearself.ai/impressum/" style="color: #0f766e; text-decoration: none;">Impressum</a> | 
+                                <a href="https://clearself.ai/abmelden/" style="color: #0f766e; text-decoration: none;">Abmelden</a>
                             </p>
                         </div>
                     </div>
