@@ -147,8 +147,7 @@ app.post('/api/analyze', async (req, res) => {
     }
 });
 
-// Bestätigungs-Endpunkt
-// Bestätigungs-Endpunkt anpassen
+//// Bestätigungs-Endpunkt
 app.get('/api/confirm/:token', async (req, res) => {
     try {
         const { token } = req.params;
@@ -189,8 +188,6 @@ app.get('/api/confirm/:token', async (req, res) => {
         // Kontakt aktivieren
         contact.status = 'active';
         contact.confirmedAt = new Date();
-        // Token nicht sofort löschen für mögliche Fehlerbehandlung
-        // contact.confirmationToken = null;
         await contact.save();
 
         // Ausstehende Analyse finden oder neue erstellen
@@ -254,147 +251,31 @@ app.get('/api/confirm/:token', async (req, res) => {
             contact.confirmationToken = null;
             await contact.save();
 
+            // Erfolgsmeldung anzeigen
+            res.send(`
+                <html>
+                    <head>
+                        <style>
+                            body { font-family: Arial; margin: 40px; text-align: center; }
+                            .success { color: #0f766e; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1 class="success">E-Mail-Adresse bestätigt!</h1>
+                        <p>Vielen Dank für Ihre Bestätigung. Ihre Analyse wird nun erstellt und in wenigen Minuten per E-Mail zugestellt.</p>
+                        <p><a href="https://clearself.ai">Zurück zur Website</a></p>
+                    </body>
+                </html>
+            `);
+
         } catch (error) {
             console.error('Fehler bei Analyse/E-Mail:', error);
             contact.status = 'pending'; // Status zurücksetzen bei Fehler
             await contact.save();
             throw error;
         }
-
-        // Erfolgsmeldung anzeigen
-        res.send(`
-            <html>
-                <head>
-                    <style>
-                        body { font-family: Arial; margin: 40px; text-align: center; }
-                        .success { color: #0f766e; }
-                    </style>
-                </head>
-                <body>
-                    <h1 class="success">E-Mail-Adresse bestätigt!</h1>
-                    <p>Vielen Dank für Ihre Bestätigung. Ihre Analyse wird nun erstellt und in wenigen Minuten per E-Mail zugestellt.</p>
-                    <p><a href="https://clearself.ai">Zurück zur Website</a></p>
-                </body>
-            </html>
-        `);
-
     } catch (error) {
         console.error('Bestätigungsfehler:', error);
         res.status(500).send('Es ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.');
-    }
-});
-
-        // Erfolgsmeldung anzeigen
-        res.send(`
-            <html>
-                <head>
-                    <style>
-                        body { font-family: Arial; margin: 40px; text-align: center; }
-                        .success { color: #0f766e; }
-                    </style>
-                </head>
-                <body>
-                    <h1 class="success">E-Mail-Adresse bestätigt!</h1>
-                    <p>Vielen Dank für Ihre Bestätigung. Ihre Analyse wird nun erstellt und in wenigen Minuten per E-Mail zugestellt.</p>
-                    <p><a href="https://clearself.ai">Zurück zur Website</a></p>
-                </body>
-            </html>
-        `);
-
-    } catch (error) {
-        console.error('Bestätigungsfehler:', error);
-        res.status(500).send('Es ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.');
-    }
-});
-
-// Endpunkt zum Abrufen der Kontakte
-app.get('/api/contacts', async (req, res) => {
-    try {
-        const contacts = await Contact.findAll({
-            include: [{
-                model: Analysis,
-                attributes: ['createdAt']
-            }],
-            order: [['createdAt', 'DESC']]
-        });
-
-        const formattedContacts = contacts.map(contact => ({
-            id: contact.id,
-            email: contact.email,
-            status: contact.status,
-            created_at: contact.createdAt,
-            analysis_count: contact.Analyses.length,
-            last_analysis: contact.Analyses.length > 0 ? 
-                contact.Analyses[contact.Analyses.length - 1].createdAt : null
-        }));
-
-        res.json(formattedContacts);
-    } catch (error) {
-        console.error('Fehler beim Abrufen der Kontakte:', error);
-        res.status(500).json({ error: 'Fehler beim Abrufen der Kontakte' });
-    }
-});
-
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, '0.0.0.0', () => {
-    console.clear();
-    console.log('\n=== SERVER ERFOLGREICH GESTARTET ===');
-    console.log(`Zeit: ${new Date().toISOString()}`);
-    console.log(`Server läuft auf: http://localhost:${PORT}`);
-    console.log('\nEnvironment Check:');
-    console.log('- OpenAI Key:', !!process.env.OPENAI_API_KEY);
-    console.log('- Gmail Setup:', !!process.env.GMAIL_USER && !!process.env.GMAIL_APP_PASSWORD);
-    console.log('- Database URL:', !!process.env.DATABASE_URL);
-    console.log('\nWarte auf Anfragen...');
-});
-
-// Endpunkt zum Löschen eines Kontakts
-// Endpunkt zum Löschen eines Kontakts
-app.delete('/api/contacts/:email', cors(), async (req, res) => {
-    try {
-        const { email } = req.params;
-        
-        // Validiere E-Mail-Format
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            return res.status(400).json({ 
-                error: 'Ungültiges E-Mail-Format' 
-            });
-        }
-        
-        console.log('Löschversuch für:', email);
-    
-
-        // Finde und lösche den Kontakt
-        const contact = await Contact.findOne({ 
-            where: { email }
-        });
-
-        if (contact) {
-            // Lösche zuerst alle zugehörigen Analysen
-            await Analysis.destroy({ 
-                where: { ContactId: contact.id }
-            });
-            
-            // Dann lösche den Kontakt selbst
-            await contact.destroy();
-            
-            console.log(`Kontakt ${email} wurde gelöscht`);
-            res.json({ 
-                success: true, 
-                message: 'Kontakt wurde gelöscht' 
-            });
-        } else {
-            console.log(`Kontakt ${email} nicht gefunden`);
-            res.status(404).json({ 
-                error: 'Kontakt nicht gefunden' 
-            });
-        }
-    } catch (error) {
-        console.error('Fehler beim Löschen:', error);
-        res.status(500).json({ 
-            error: 'Fehler beim Löschen des Kontakts',
-            details: error.message 
-        });
     }
 });
