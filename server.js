@@ -148,37 +148,65 @@ app.post('/api/analyze', async (req, res) => {
 });
 
 // Bestätigungs-Endpunkt
+// Bestätigungs-Endpunkt anpassen
 app.get('/api/confirm/:token', async (req, res) => {
     try {
         const { token } = req.params;
+        console.log('Bestätigungsversuch für Token:', token);
         
-        // Kontakt finden
+        // Kontakt finden - auch wenn nicht pending
         const contact = await Contact.findOne({
             where: { 
-                confirmationToken: token,
-                status: 'pending'
+                confirmationToken: token
             }
         });
 
         if (!contact) {
-            return res.status(400).send('Ungültiger oder bereits verwendeter Bestätigungslink.');
+            console.log('Token nicht gefunden');
+            return res.status(400).send('Ungültiger Bestätigungslink.');
+        }
+
+        if (contact.status === 'active') {
+            console.log('Kontakt bereits aktiv');
+            return res.send(`
+                <html>
+                    <head>
+                        <style>
+                            body { font-family: Arial; margin: 40px; text-align: center; }
+                            .info { color: #0f766e; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1 class="info">Diese E-Mail wurde bereits bestätigt</h1>
+                        <p>Ihre Analyse sollte bereits per E-Mail bei Ihnen eingegangen sein.</p>
+                        <p>Falls nicht, kontaktieren Sie uns bitte unter: info@clearself.ai</p>
+                        <p><a href="https://clearself.ai">Zurück zur Website</a></p>
+                    </body>
+                </html>
+            `);
         }
 
         // Kontakt aktivieren
         contact.status = 'active';
         contact.confirmedAt = new Date();
-        contact.confirmationToken = null;
+        // Token nicht sofort löschen für mögliche Fehlerbehandlung
+        // contact.confirmationToken = null;
         await contact.save();
 
-        // Ausstehende Analyse finden
-        const pendingAnalysis = await Analysis.findOne({
+        // Ausstehende Analyse finden oder neue erstellen
+        let pendingAnalysis = await Analysis.findOne({
             where: { 
                 ContactId: contact.id,
                 status: 'pending'
             }
         });
 
-        if (pendingAnalysis) {
+        if (!pendingAnalysis) {
+            console.log('Keine ausstehende Analyse gefunden');
+            return res.status(400).send('Keine ausstehende Analyse gefunden.');
+        }
+
+        try {
             // OpenAI Analyse durchführen
             const completion = await openai.chat.completions.create({
                 model: "gpt-4",
@@ -221,7 +249,40 @@ app.get('/api/confirm/:token', async (req, res) => {
                     </div>
                 `
             });
+
+            // Jetzt erst den Token entfernen
+            contact.confirmationToken = null;
+            await contact.save();
+
+        } catch (error) {
+            console.error('Fehler bei Analyse/E-Mail:', error);
+            contact.status = 'pending'; // Status zurücksetzen bei Fehler
+            await contact.save();
+            throw error;
         }
+
+        // Erfolgsmeldung anzeigen
+        res.send(`
+            <html>
+                <head>
+                    <style>
+                        body { font-family: Arial; margin: 40px; text-align: center; }
+                        .success { color: #0f766e; }
+                    </style>
+                </head>
+                <body>
+                    <h1 class="success">E-Mail-Adresse bestätigt!</h1>
+                    <p>Vielen Dank für Ihre Bestätigung. Ihre Analyse wird nun erstellt und in wenigen Minuten per E-Mail zugestellt.</p>
+                    <p><a href="https://clearself.ai">Zurück zur Website</a></p>
+                </body>
+            </html>
+        `);
+
+    } catch (error) {
+        console.error('Bestätigungsfehler:', error);
+        res.status(500).send('Es ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.');
+    }
+});
 
         // Erfolgsmeldung anzeigen
         res.send(`
