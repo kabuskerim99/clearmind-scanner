@@ -4,7 +4,7 @@ document.getElementById('analysisForm').addEventListener('submit', async functio
     const submitButton = document.getElementById('submitButton');
     const originalButtonText = submitButton.textContent;
     submitButton.disabled = true;
-    submitButton.textContent = 'Wird verarbeitet...';
+    submitButton.textContent = 'Wird verarbeitet... (bis zu 2 Min.)';
 
     try {
         const response = await fetch('/api/analyze', {
