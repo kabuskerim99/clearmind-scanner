@@ -53,6 +53,15 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+// Standardeinstellungen für alle E-Mails
+defaults: {
+    from: {
+        name: 'ClearSelf AI',
+        address: 'info@clearself.ai'  // Ihre ClearSelf E-Mail-Adresse
+    }
+}
+});
+
 // Datenbank beim Start initialisieren
 initDatabase();
 
@@ -115,7 +124,7 @@ app.post('/api/analyze', async (req, res) => {
 
         // Bestätigungs-E-Mail senden
         await transporter.sendMail({
-            from: process.env.GMAIL_USER,
+            from: '"ClearSelf AI" <info@clearself.ai>', // Expliziter Absender
             to: email,
             subject: "Bitte bestätige deine ClearSelf Analyse",
             html: `
@@ -275,14 +284,14 @@ Ende mit: "Wie fühlst du dich jetzt in Bezug auf diese neue Sichtweise?"`
 
             // Analyse-E-Mail senden
             await transporter.sendMail({
-                from: process.env.GMAIL_USER,
-                to: contact.email,
+                from: '"ClearSelf AI" <info@clearself.ai>', // Expliziter Absender
+    to: contact.email,
                 subject: "Deine erste Analyse ist bereit [Wichtige Erkenntnis entdeckt]",
                 html: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #334155;">
                         <h2 style="color: #0f766e;">Deine erste ClearSelf Analyse</h2>
             
-                        <p>Hallo ${contact.name || 'dort'},</p>
+                        <p>Hallo,</p>
             
                         <p>unsere KI hat deine Situation analysiert und einen ersten bedeutsamen Glaubenssatz identifiziert:</p>
             
