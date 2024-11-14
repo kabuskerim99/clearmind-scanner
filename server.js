@@ -328,7 +328,7 @@ Ende mit: "Wie fühlst du dich jetzt in Bezug auf diese neue Sichtweise?"`
                                 </p>
                             </div>
             
-                            <a href="https://clearself.ai/angebot/" style="display: inline-block; background: white; color: #0f766e; padding: 15px 30px; text-decoration: none; border-radius: 4px; font-weight: bold;">Jetzt unbegrenzten Zugang sichern</a>
+                            <a href="https://beta.clearself.ai" style="display: inline-block; background: white; color: #0f766e; padding: 15px 30px; text-decoration: none; border-radius: 4px; font-weight: bold;">Jetzt unbegrenzten Zugang sichern</a>
                         </div>
             
                         <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 25px 0;">
@@ -343,7 +343,7 @@ Ende mit: "Wie fühlst du dich jetzt in Bezug auf diese neue Sichtweise?"`
                         <p><strong>P.S.:</strong> Denk daran: Du hast gerade erst einen Glaubenssatz erkannt. Stell dir vor, was passiert, wenn du ab heute jedes Problem sofort vollständig analysieren und auflösen kannst - einfach durch Lesen.</p>
             
                         <div style="text-align: center; margin: 30px 0;">
-                            <a href="https://clearself.ai/angebot/" style="display: inline-block; background: #0f766e; color: white; padding: 15px 30px; text-decoration: none; border-radius: 4px; font-weight: bold;">Jetzt Zugang freischalten</a>
+                            <a href="https://beta.clearself.ai" style="display: inline-block; background: #0f766e; color: white; padding: 15px 30px; text-decoration: none; border-radius: 4px; font-weight: bold;">Jetzt Zugang freischalten</a>
                         </div>
             
                         <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
