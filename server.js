@@ -116,7 +116,7 @@ app.post('/api/analyze', async (req, res) => {
 
         // Bestätigungs-E-Mail senden
         await transporter.sendMail({
-            from: '"ClearSelf AI" <info@clearself.ai>', // Expliziter Absender
+            from: process.env.GMAIL_USER, // Expliziter Absender
             to: email,
             subject: "Bitte bestätige deine ClearSelf Analyse",
             html: `
