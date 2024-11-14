@@ -53,14 +53,6 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Standardeinstellungen für alle E-Mails
-defaults: {
-    from: {
-        name: 'ClearSelf AI',
-        address: 'info@clearself.ai'  // Ihre ClearSelf E-Mail-Adresse
-    }
-}
-});
 
 // Datenbank beim Start initialisieren
 initDatabase();
@@ -284,8 +276,8 @@ Ende mit: "Wie fühlst du dich jetzt in Bezug auf diese neue Sichtweise?"`
 
             // Analyse-E-Mail senden
             await transporter.sendMail({
-                from: '"ClearSelf AI" <info@clearself.ai>', // Expliziter Absender
-    to: contact.email,
+                from: process.env.GMAIL_USER,
+                to: contact.email,
                 subject: "Deine erste Analyse ist bereit [Wichtige Erkenntnis entdeckt]",
                 html: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #334155;">
@@ -316,6 +308,7 @@ Ende mit: "Wie fühlst du dich jetzt in Bezug auf diese neue Sichtweise?"`
                                     <li style="margin: 10px 0;">✓ Die KI findet alle verborgenen Glaubenssätze</li>
                                     <li style="margin: 10px 0;">✓ Du liest die Analyse</li>
                                     <li style="margin: 10px 0;">✓ Die Transformation geschieht beim Lesen</li>
+                                    <li style="margin: 10px 0;">✓ Alles in Sekundenschnelle im Chatbot-Fenster</li>
                                 </ul>
                             </div>
             
